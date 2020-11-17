@@ -364,7 +364,8 @@ public class ZLEditVideoViewController: UIViewController {
         self.cleanTimer()
         let duration = self.interval * TimeInterval(self.clipRect().width / ZLEditVideoViewController.frameImageSize.width)
         
-        self.timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: true, block: { (_) in
+        self.timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: true, block: {[weak self] (_) in
+            guard let self = self else { return }
             self.playerLayer.player?.seek(to: self.getStartTime(), toleranceBefore: .zero, toleranceAfter: .zero)
             if (self.playerLayer.player?.rate ?? 0) == 0 {
                 self.playerLayer.player?.play()

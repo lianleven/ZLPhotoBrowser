@@ -513,7 +513,8 @@ public class ZLCustomCamera: UIViewController, CAAnimationDelegate {
     
     func startHideTipsLabelTimer() {
         self.cleanTimer()
-        self.hideTipsTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
+        self.hideTipsTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: {[weak self] (timer) in
+            guard let self = self else { return }
             self.hideTipsLabel(animate: true)
         })
     }
