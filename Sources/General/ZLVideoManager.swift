@@ -30,8 +30,11 @@ import AVFoundation
 public class ZLVideoManager: NSObject {
     
     class func getVideoExportFilePath() -> String {
-        let format = ZLPhotoConfiguration.default().videoExportType.format
-        return NSTemporaryDirectory().appendingFormat("/%@.%@", UUID().uuidString, format)
+        if #available(iOS 10.0, *) {
+            let format = (ZLCustomCamera.VideoExportType(rawValue: ZLPhotoConfiguration.default().videoExportType) ?? .mov).format
+            return NSTemporaryDirectory().appendingFormat("/%@.%@", UUID().uuidString, format)
+        }
+        return ""
     }
     
     @objc public class func exportEditVideo(for asset: AVAsset, range: CMTimeRange, completion: @escaping ( (URL?, Error?) -> Void )) {
@@ -41,7 +44,11 @@ public class ZLVideoManager: NSObject {
             return
         }
         exportSession.outputURL = outputUrl
-        exportSession.outputFileType = ZLPhotoConfiguration.default().videoExportType.avFileType
+        if #available(iOS 10.0, *) {
+            exportSession.outputFileType = (ZLCustomCamera.VideoExportType(rawValue: ZLPhotoConfiguration.default().videoExportType) ?? .mov).avFileType
+        } else {
+            // Fallback on earlier versions
+        }
         exportSession.timeRange = range
         
         exportSession.exportAsynchronously(completionHandler: {
@@ -116,7 +123,11 @@ public class ZLVideoManager: NSObject {
             let outputUrl = URL(fileURLWithPath: ZLVideoManager.getVideoExportFilePath())
             exportSession.outputURL = outputUrl
             exportSession.shouldOptimizeForNetworkUse = true
-            exportSession.outputFileType = ZLPhotoConfiguration.default().videoExportType.avFileType
+            if #available(iOS 10.0, *) {
+                exportSession.outputFileType = (ZLCustomCamera.VideoExportType(rawValue: ZLPhotoConfiguration.default().videoExportType) ?? .mov).avFileType
+            } else {
+                // Fallback on earlier versions
+            }
             exportSession.videoComposition = mainComposition
             exportSession.exportAsynchronously(completionHandler: {
                 let suc = exportSession.status == .completed

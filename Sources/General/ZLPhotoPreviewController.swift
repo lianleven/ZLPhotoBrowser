@@ -86,7 +86,12 @@ class ZLPhotoPreviewController: UIViewController {
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ZLPhotoConfiguration.default().statusBarStyle
+        if #available(iOS 10.0, *) {
+            return ZLPhotoConfiguration.default().statusBarStyle
+        } else {
+            // Fallback on earlier versions
+            return .default
+        }
     }
     
     deinit {
@@ -177,12 +182,14 @@ class ZLPhotoPreviewController: UIViewController {
         }
         var bottomViewH = ZLLayout.bottomToolViewH
         var showSelPhotoPreview = false
-        if ZLPhotoConfiguration.default().showSelectedPhotoPreview {
-            let nav = self.navigationController as! ZLImageNavController
-            if !nav.arrSelectedModels.isEmpty {
-                showSelPhotoPreview = true
-                bottomViewH += ZLPhotoPreviewController.selPhotoPreviewH
-                self.selPhotoPreview?.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: ZLPhotoPreviewController.selPhotoPreviewH)
+        if #available(iOS 10.0, *) {
+            if ZLPhotoConfiguration.default().showSelectedPhotoPreview {
+                let nav = self.navigationController as! ZLImageNavController
+                if !nav.arrSelectedModels.isEmpty {
+                    showSelPhotoPreview = true
+                    bottomViewH += ZLPhotoPreviewController.selPhotoPreviewH
+                    self.selPhotoPreview?.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: ZLPhotoPreviewController.selPhotoPreviewH)
+                }
             }
         }
         let btnH = ZLLayout.bottomToolBtnH
@@ -213,108 +220,110 @@ class ZLPhotoPreviewController: UIViewController {
         self.view.backgroundColor = .black
         self.automaticallyAdjustsScrollViewInsets = false
         
-        let config = ZLPhotoConfiguration.default()
-        // nav view
-        self.navView = UIView()
-        self.navView.backgroundColor = .navBarColor
-        self.view.addSubview(self.navView)
-        
-        if let effect = config.navViewBlurEffect {
-            self.navBlurView = UIVisualEffectView(effect: effect)
-            self.navView.addSubview(self.navBlurView!)
-        }
-        
-        self.backBtn = UIButton(type: .custom)
-        self.backBtn.setImage(getImage("zl_navBack"), for: .normal)
-        self.backBtn.imageEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
-        self.backBtn.addTarget(self, action: #selector(backBtnClick), for: .touchUpInside)
-        self.navView.addSubview(self.backBtn)
-        
-        self.selectBtn = UIButton(type: .custom)
-        self.selectBtn.setImage(getImage("zl_btn_circle"), for: .normal)
-        self.selectBtn.setImage(getImage("zl_btn_selected"), for: .selected)
-        self.selectBtn.zl_enlargeValidTouchArea(inset: 10)
-        self.selectBtn.addTarget(self, action: #selector(selectBtnClick), for: .touchUpInside)
-        self.navView.addSubview(self.selectBtn)
-        
-        self.indexLabel = UILabel()
-        self.indexLabel.backgroundColor = .indexLabelBgColor
-        self.indexLabel.font = getFont(14)
-        self.indexLabel.textColor = .white
-        self.indexLabel.textAlignment = .center
-        self.indexLabel.layer.cornerRadius = 25.0 / 2
-        self.indexLabel.layer.masksToBounds = true
-        self.indexLabel.isHidden = true
-        self.navView.addSubview(self.indexLabel)
-        
-        // collection view
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        
-        self.collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        self.collectionView.backgroundColor = .clear
-        self.collectionView.dataSource = self
-        self.collectionView.delegate = self
-        self.collectionView.isPagingEnabled = true
-        self.collectionView.showsHorizontalScrollIndicator = false
-        self.view.addSubview(self.collectionView)
-        
-        ZLPhotoPreviewCell.zl_register(self.collectionView)
-        ZLGifPreviewCell.zl_register(self.collectionView)
-        ZLLivePhotoPewviewCell.zl_register(self.collectionView)
-        ZLVideoPreviewCell.zl_register(self.collectionView)
-        
-        // bottom view
-        self.bottomView = UIView()
-        self.bottomView.backgroundColor = .bottomToolViewBgColor
-        self.view.addSubview(self.bottomView)
-        
-        if let effect = config.bottomToolViewBlurEffect {
-            self.bottomBlurView = UIVisualEffectView(effect: effect)
-            self.bottomView.addSubview(self.bottomBlurView!)
-        }
-        
-        if config.showSelectedPhotoPreview {
-            let nav = self.navigationController as! ZLImageNavController
-            self.selPhotoPreview = ZLPhotoPreviewSelectedView(selModels: nav.arrSelectedModels, currentShowModel: self.arrDataSources[self.currentIndex])
-            self.selPhotoPreview?.selectBlock = { [weak self] (model) in
-                self?.scrollToSelPreviewCell(model)
+        if #available(iOS 10.0, *) {
+            let config = ZLPhotoConfiguration.default()
+            // nav view
+            self.navView = UIView()
+            self.navView.backgroundColor = .navBarColor
+            self.view.addSubview(self.navView)
+            
+            if let effect = config.navViewBlurEffect {
+                self.navBlurView = UIVisualEffectView(effect: effect)
+                self.navView.addSubview(self.navBlurView!)
             }
-            self.selPhotoPreview?.endSortBlock = { [weak self] (models) in
-                self?.refreshCurrentCellIndex(models)
+            
+            self.backBtn = UIButton(type: .custom)
+            self.backBtn.setImage(getImage("zl_navBack"), for: .normal)
+            self.backBtn.imageEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
+            self.backBtn.addTarget(self, action: #selector(backBtnClick), for: .touchUpInside)
+            self.navView.addSubview(self.backBtn)
+            
+            self.selectBtn = UIButton(type: .custom)
+            self.selectBtn.setImage(getImage("zl_btn_circle"), for: .normal)
+            self.selectBtn.setImage(getImage("zl_btn_selected"), for: .selected)
+            self.selectBtn.zl_enlargeValidTouchArea(inset: 10)
+            self.selectBtn.addTarget(self, action: #selector(selectBtnClick), for: .touchUpInside)
+            self.navView.addSubview(self.selectBtn)
+            
+            self.indexLabel = UILabel()
+            self.indexLabel.backgroundColor = .indexLabelBgColor
+            self.indexLabel.font = getFont(14)
+            self.indexLabel.textColor = .white
+            self.indexLabel.textAlignment = .center
+            self.indexLabel.layer.cornerRadius = 25.0 / 2
+            self.indexLabel.layer.masksToBounds = true
+            self.indexLabel.isHidden = true
+            self.navView.addSubview(self.indexLabel)
+            
+            // collection view
+            let layout = UICollectionViewFlowLayout()
+            layout.scrollDirection = .horizontal
+            
+            self.collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+            self.collectionView.backgroundColor = .clear
+            self.collectionView.dataSource = self
+            self.collectionView.delegate = self
+            self.collectionView.isPagingEnabled = true
+            self.collectionView.showsHorizontalScrollIndicator = false
+            self.view.addSubview(self.collectionView)
+            
+            ZLPhotoPreviewCell.zl_register(self.collectionView)
+            ZLGifPreviewCell.zl_register(self.collectionView)
+            ZLLivePhotoPewviewCell.zl_register(self.collectionView)
+            ZLVideoPreviewCell.zl_register(self.collectionView)
+            
+            // bottom view
+            self.bottomView = UIView()
+            self.bottomView.backgroundColor = .bottomToolViewBgColor
+            self.view.addSubview(self.bottomView)
+            
+            if let effect = config.bottomToolViewBlurEffect {
+                self.bottomBlurView = UIVisualEffectView(effect: effect)
+                self.bottomView.addSubview(self.bottomBlurView!)
             }
-            self.bottomView.addSubview(self.selPhotoPreview!)
+            
+            if config.showSelectedPhotoPreview {
+                let nav = self.navigationController as! ZLImageNavController
+                self.selPhotoPreview = ZLPhotoPreviewSelectedView(selModels: nav.arrSelectedModels, currentShowModel: self.arrDataSources[self.currentIndex])
+                self.selPhotoPreview?.selectBlock = { [weak self] (model) in
+                    self?.scrollToSelPreviewCell(model)
+                }
+                self.selPhotoPreview?.endSortBlock = { [weak self] (models) in
+                    self?.refreshCurrentCellIndex(models)
+                }
+                self.bottomView.addSubview(self.selPhotoPreview!)
+            }
+            
+            func createBtn(_ title: String, _ action: Selector) -> UIButton {
+                let btn = UIButton(type: .custom)
+                btn.titleLabel?.font = ZLLayout.bottomToolTitleFont
+                btn.setTitle(title, for: .normal)
+                btn.setTitleColor(.bottomToolViewBtnNormalTitleColor, for: .normal)
+                btn.setTitleColor(.bottomToolViewBtnDisableTitleColor, for: .disabled)
+                btn.addTarget(self, action: action, for: .touchUpInside)
+                return btn
+            }
+            
+            self.editBtn = createBtn(localLanguageTextValue(.edit), #selector(editBtnClick))
+            self.editBtn.isHidden = (!config.allowEditImage && !config.allowEditVideo)
+            self.bottomView.addSubview(self.editBtn)
+            
+            self.originalBtn = createBtn(localLanguageTextValue(.originalPhoto), #selector(originalPhotoClick))
+            self.originalBtn.setImage(getImage("zl_btn_original_circle"), for: .normal)
+            self.originalBtn.setImage(getImage("zl_btn_original_selected"), for: .selected)
+            self.originalBtn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+            self.originalBtn.isHidden = !(config.allowSelectOriginal && config.allowSelectImage)
+            self.originalBtn.isSelected = (self.navigationController as! ZLImageNavController).isSelectedOriginal
+            self.bottomView.addSubview(self.originalBtn)
+            
+            self.doneBtn = createBtn(localLanguageTextValue(.done), #selector(doneBtnClick))
+            self.doneBtn.backgroundColor = .bottomToolViewBtnNormalBgColor
+            self.doneBtn.layer.masksToBounds = true
+            self.doneBtn.layer.cornerRadius = ZLLayout.bottomToolBtnCornerRadius
+            self.bottomView.addSubview(self.doneBtn)
+            
+            self.view.bringSubviewToFront(self.navView)
         }
-        
-        func createBtn(_ title: String, _ action: Selector) -> UIButton {
-            let btn = UIButton(type: .custom)
-            btn.titleLabel?.font = ZLLayout.bottomToolTitleFont
-            btn.setTitle(title, for: .normal)
-            btn.setTitleColor(.bottomToolViewBtnNormalTitleColor, for: .normal)
-            btn.setTitleColor(.bottomToolViewBtnDisableTitleColor, for: .disabled)
-            btn.addTarget(self, action: action, for: .touchUpInside)
-            return btn
-        }
-        
-        self.editBtn = createBtn(localLanguageTextValue(.edit), #selector(editBtnClick))
-        self.editBtn.isHidden = (!config.allowEditImage && !config.allowEditVideo)
-        self.bottomView.addSubview(self.editBtn)
-        
-        self.originalBtn = createBtn(localLanguageTextValue(.originalPhoto), #selector(originalPhotoClick))
-        self.originalBtn.setImage(getImage("zl_btn_original_circle"), for: .normal)
-        self.originalBtn.setImage(getImage("zl_btn_original_selected"), for: .selected)
-        self.originalBtn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
-        self.originalBtn.isHidden = !(config.allowSelectOriginal && config.allowSelectImage)
-        self.originalBtn.isSelected = (self.navigationController as! ZLImageNavController).isSelectedOriginal
-        self.bottomView.addSubview(self.originalBtn)
-        
-        self.doneBtn = createBtn(localLanguageTextValue(.done), #selector(doneBtnClick))
-        self.doneBtn.backgroundColor = .bottomToolViewBtnNormalBgColor
-        self.doneBtn.layer.masksToBounds = true
-        self.doneBtn.layer.cornerRadius = ZLLayout.bottomToolBtnCornerRadius
-        self.bottomView.addSubview(self.doneBtn)
-        
-        self.view.bringSubviewToFront(self.navView)
     }
     
     func addPopInteractiveTransition() {
@@ -369,62 +378,66 @@ class ZLPhotoPreviewController: UIViewController {
     
     func resetSubViewStatus(animateIndexLabel: Bool) {
         let nav = self.navigationController as! ZLImageNavController
-        let config = ZLPhotoConfiguration.default()
-        let currentModel = self.arrDataSources[self.currentIndex]
-        
-        if (!config.allowMixSelect && currentModel.type == .video) || (!config.showSelectBtnWhenSingleSelect && config.maxSelectCount == 1) {
-            self.selectBtn.isHidden = true
-        } else {
-            self.selectBtn.isHidden = false
-        }
-        self.selectBtn.isSelected = self.arrDataSources[self.currentIndex].isSelected
-        self.resetIndexLabelStatus(animate: animateIndexLabel)
-        
-        guard self.showBottomViewAndSelectBtn else {
-            self.selectBtn.isHidden = true
-            self.bottomView.isHidden = true
-            return
-        }
-        let selCount = nav.arrSelectedModels.count
-        var doneTitle = localLanguageTextValue(.done)
-        if selCount > 0 {
-            doneTitle += "(" + String(selCount) + ")"
-        }
-        self.doneBtn.setTitle(doneTitle, for: .normal)
-        
-        self.selPhotoPreview?.isHidden = selCount == 0
-        self.refreshBottomViewFrame()
-        
-        var hideEditBtn = true
-        if selCount < config.maxSelectCount || nav.arrSelectedModels.contains(where: { $0 == currentModel }) {
-            if config.allowEditImage && (currentModel.type == .image || (currentModel.type == .gif && !config.allowSelectGif) || (currentModel.type == .livePhoto && !config.allowSelectLivePhoto)) {
-                hideEditBtn = false
+        if #available(iOS 10.0, *) {
+            let config = ZLPhotoConfiguration.default()
+            let currentModel = self.arrDataSources[self.currentIndex]
+            
+            if (!config.allowMixSelect && currentModel.type == .video) || (!config.showSelectBtnWhenSingleSelect && config.maxSelectCount == 1) {
+                self.selectBtn.isHidden = true
+            } else {
+                self.selectBtn.isHidden = false
             }
-            if config.allowEditVideo && currentModel.type == .video && (selCount == 0 || (selCount == 1 && nav.arrSelectedModels.first == currentModel)) {
-                hideEditBtn = false
+            self.selectBtn.isSelected = self.arrDataSources[self.currentIndex].isSelected
+            self.resetIndexLabelStatus(animate: animateIndexLabel)
+            
+            guard self.showBottomViewAndSelectBtn else {
+                self.selectBtn.isHidden = true
+                self.bottomView.isHidden = true
+                return
             }
-        }
-        self.editBtn.isHidden = hideEditBtn
-        
-        if ZLPhotoConfiguration.default().allowSelectOriginal && ZLPhotoConfiguration.default().allowSelectImage {
-            self.originalBtn.isHidden = !((currentModel.type == .image) || (currentModel.type == .livePhoto && !config.allowSelectLivePhoto) || (currentModel.type == .gif && !config.allowSelectGif))
+            let selCount = nav.arrSelectedModels.count
+            var doneTitle = localLanguageTextValue(.done)
+            if selCount > 0 {
+                doneTitle += "(" + String(selCount) + ")"
+            }
+            self.doneBtn.setTitle(doneTitle, for: .normal)
+            
+            self.selPhotoPreview?.isHidden = selCount == 0
+            self.refreshBottomViewFrame()
+            
+            var hideEditBtn = true
+            if selCount < config.maxSelectCount || nav.arrSelectedModels.contains(where: { $0 == currentModel }) {
+                if config.allowEditImage && (currentModel.type == .image || (currentModel.type == .gif && !config.allowSelectGif) || (currentModel.type == .livePhoto && !config.allowSelectLivePhoto)) {
+                    hideEditBtn = false
+                }
+                if config.allowEditVideo && currentModel.type == .video && (selCount == 0 || (selCount == 1 && nav.arrSelectedModels.first == currentModel)) {
+                    hideEditBtn = false
+                }
+            }
+            self.editBtn.isHidden = hideEditBtn
+            
+            if ZLPhotoConfiguration.default().allowSelectOriginal && ZLPhotoConfiguration.default().allowSelectImage {
+                self.originalBtn.isHidden = !((currentModel.type == .image) || (currentModel.type == .livePhoto && !config.allowSelectLivePhoto) || (currentModel.type == .gif && !config.allowSelectGif))
+            }
         }
     }
     
     func resetIndexLabelStatus(animate: Bool) {
-        guard ZLPhotoConfiguration.default().showSelectedIndex else {
-            self.indexLabel.isHidden = true
-            return
-        }
-        let nav = self.navigationController as! ZLImageNavController
-        if let index = nav.arrSelectedModels.firstIndex(where: { $0 == self.arrDataSources[self.currentIndex] }) {
-            self.indexLabel.isHidden = false
-            self.indexLabel.text = String(index + 1)
-        } else {
-            self.indexLabel.isHidden = true
-        }
-        if animate {
-            self.indexLabel.layer.add(getSpringAnimation(), forKey: nil)
+        if #available(iOS 10.0, *) {
+            guard ZLPhotoConfiguration.default().showSelectedIndex else {
+                self.indexLabel.isHidden = true
+                return
+            }
+            let nav = self.navigationController as! ZLImageNavController
+            if let index = nav.arrSelectedModels.firstIndex(where: { $0 == self.arrDataSources[self.currentIndex] }) {
+                self.indexLabel.isHidden = false
+                self.indexLabel.text = String(index + 1)
+            } else {
+                self.indexLabel.isHidden = true
+            }
+            if animate {
+                self.indexLabel.layer.add(getSpringAnimation(), forKey: nil)
+            }
         }
     }
     
@@ -459,38 +472,40 @@ class ZLPhotoPreviewController: UIViewController {
     }
     
     @objc func editBtnClick() {
-        let config = ZLPhotoConfiguration.default()
-        let model = self.arrDataSources[self.currentIndex]
-        let hud = ZLProgressHUD(style: config.hudStyle)
-        
-        if model.type == .image || (!config.allowSelectGif && model.type == .gif) || (!config.allowSelectLivePhoto && model.type == .livePhoto) {
-            hud.show()
-            ZLPhotoManager.fetchImage(for: model.asset, size: model.previewSize) { [weak self] (image, isDegraded) in
-                if !isDegraded {
-                    if let image = image {
-                        self?.showEditImageVC(image: image)
-                    } else {
-                        showAlertView(localLanguageTextValue(.imageLoadFailed), self)
+        if #available(iOS 10.0, *) {
+            let config = ZLPhotoConfiguration.default()
+            let model = self.arrDataSources[self.currentIndex]
+            let hud = ZLProgressHUD(style: config.hudStyle)
+            
+            if model.type == .image || (!config.allowSelectGif && model.type == .gif) || (!config.allowSelectLivePhoto && model.type == .livePhoto) {
+                hud.show()
+                ZLPhotoManager.fetchImage(for: model.asset, size: model.previewSize) { [weak self] (image, isDegraded) in
+                    if !isDegraded {
+                        if let image = image {
+                            self?.showEditImageVC(image: image)
+                        } else {
+                            showAlertView(localLanguageTextValue(.imageLoadFailed), self)
+                        }
+                        hud.hide()
                     }
-                    hud.hide()
                 }
-            }
-        } else if model.type == .video || config.allowEditVideo {
-            var requestAvAssetID: PHImageRequestID?
-            hud.show(timeout: 15)
-            hud.timeoutBlock = { [weak self] in
-                showAlertView(localLanguageTextValue(.timeout), self)
-                if let _ = requestAvAssetID {
-                    PHImageManager.default().cancelImageRequest(requestAvAssetID!)
-                }
-            }
-            // 提前fetch一下 avasset
-            requestAvAssetID = ZLPhotoManager.fetchAVAsset(forVideo: model.asset) { [weak self] (avAsset, _) in
-                hud.hide()
-                if let _ = avAsset {
-                    self?.showEditVideoVC(avAsset: avAsset!)
-                } else {
+            } else if model.type == .video || config.allowEditVideo {
+                var requestAvAssetID: PHImageRequestID?
+                hud.show(timeout: 15)
+                hud.timeoutBlock = { [weak self] in
                     showAlertView(localLanguageTextValue(.timeout), self)
+                    if let _ = requestAvAssetID {
+                        PHImageManager.default().cancelImageRequest(requestAvAssetID!)
+                    }
+                }
+                // 提前fetch一下 avasset
+                requestAvAssetID = ZLPhotoManager.fetchAVAsset(forVideo: model.asset) { [weak self] (avAsset, _) in
+                    hud.hide()
+                    if let _ = avAsset {
+                        self?.showEditVideoVC(avAsset: avAsset!)
+                    } else {
+                        showAlertView(localLanguageTextValue(.timeout), self)
+                    }
                 }
             }
         }
@@ -542,10 +557,12 @@ class ZLPhotoPreviewController: UIViewController {
         let nav = self.navigationController as? ZLImageNavController
         nav?.arrSelectedModels.removeAll()
         nav?.arrSelectedModels.append(contentsOf: models)
-        guard ZLPhotoConfiguration.default().showSelectedIndex else {
-            return
+        if #available(iOS 10.0, *) {
+            guard ZLPhotoConfiguration.default().showSelectedIndex else {
+                return
+            }
+            self.resetIndexLabelStatus(animate: false)
         }
-        self.resetIndexLabelStatus(animate: false)
     }
     
     func tapPreviewCell() {
@@ -674,50 +691,54 @@ extension ZLPhotoPreviewController: UICollectionViewDataSource, UICollectionView
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let config = ZLPhotoConfiguration.default()
-        let model = self.arrDataSources[indexPath.row]
-        
-        let baseCell: ZLPreviewBaseCell
-        
-        if config.allowSelectGif, model.type == .gif {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLGifPreviewCell.zl_identifier(), for: indexPath) as! ZLGifPreviewCell
+        if #available(iOS 10.0, *) {
+            let config = ZLPhotoConfiguration.default()
+            let model = self.arrDataSources[indexPath.row]
             
-            cell.singleTapBlock = { [weak self] in
+            let baseCell: ZLPreviewBaseCell
+            
+            if config.allowSelectGif, model.type == .gif {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLGifPreviewCell.zl_identifier(), for: indexPath) as! ZLGifPreviewCell
+                
+                cell.singleTapBlock = { [weak self] in
+                    self?.tapPreviewCell()
+                }
+                
+                cell.model = model
+                
+                baseCell = cell
+            } else if config.allowSelectLivePhoto, model.type == .livePhoto {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLLivePhotoPewviewCell.zl_identifier(), for: indexPath) as! ZLLivePhotoPewviewCell
+                
+                cell.model = model
+                
+                baseCell = cell
+            } else if config.allowSelectVideo, model.type == .video {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLVideoPreviewCell.zl_identifier(), for: indexPath) as! ZLVideoPreviewCell
+                
+                cell.model = model
+                
+                baseCell = cell
+            } else {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLPhotoPreviewCell.zl_identifier(), for: indexPath) as! ZLPhotoPreviewCell
+
+                cell.singleTapBlock = { [weak self] in
+                    self?.tapPreviewCell()
+                }
+
+                cell.model = model
+
+                baseCell = cell
+            }
+            
+            baseCell.singleTapBlock = { [weak self] in
                 self?.tapPreviewCell()
             }
             
-            cell.model = model
-            
-            baseCell = cell
-        } else if config.allowSelectLivePhoto, model.type == .livePhoto {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLLivePhotoPewviewCell.zl_identifier(), for: indexPath) as! ZLLivePhotoPewviewCell
-            
-            cell.model = model
-            
-            baseCell = cell
-        } else if config.allowSelectVideo, model.type == .video {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLVideoPreviewCell.zl_identifier(), for: indexPath) as! ZLVideoPreviewCell
-            
-            cell.model = model
-            
-            baseCell = cell
+            return baseCell
         } else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLPhotoPreviewCell.zl_identifier(), for: indexPath) as! ZLPhotoPreviewCell
-
-            cell.singleTapBlock = { [weak self] in
-                self?.tapPreviewCell()
-            }
-
-            cell.model = model
-
-            baseCell = cell
+            return UICollectionViewCell()
         }
-        
-        baseCell.singleTapBlock = { [weak self] in
-            self?.tapPreviewCell()
-        }
-        
-        return baseCell
     }
     
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -1004,45 +1025,47 @@ class ZLPhotoPreviewSelectedViewCell: UICollectionViewCell {
     }
     
     func configureCell() {
-        let size = CGSize(width: self.bounds.width * 1.5, height: self.bounds.height * 1.5)
-        
-        if self.imageRequestID > PHInvalidImageRequestID {
-            PHImageManager.default().cancelImageRequest(self.imageRequestID)
-        }
-        
-        if self.model.type == .video {
-            self.tagImageView.isHidden = false
-            self.tagImageView.image = getImage("zl_video")
-            self.tagLabel.isHidden = true
-        } else if ZLPhotoConfiguration.default().allowSelectGif, self.model.type == .gif {
-            self.tagImageView.isHidden = true
-            self.tagLabel.isHidden = false
-            self.tagLabel.text = "GIF"
-        } else if ZLPhotoConfiguration.default().allowSelectLivePhoto, self.model.type == .livePhoto {
-            self.tagImageView.isHidden = false
-            self.tagImageView.image = getImage("zl_livePhoto")
-            self.tagLabel.isHidden = true
-        } else {
-            if let _ =  self.model.editImage {
-                self.tagImageView.isHidden = false
-                self.tagImageView.image = getImage("zl_editImage_tag")
-            } else {
-                self.tagImageView.isHidden = true
-                self.tagLabel.isHidden = true
+        if #available(iOS 10.0, *) {
+            let size = CGSize(width: self.bounds.width * 1.5, height: self.bounds.height * 1.5)
+            
+            if self.imageRequestID > PHInvalidImageRequestID {
+                PHImageManager.default().cancelImageRequest(self.imageRequestID)
             }
-        }
-        
-        self.imageIdentifier = self.model.ident
-        self.imageView.image = nil
-        
-        if let ei = self.model.editImage {
-            self.imageView.image = ei
-        } else {
-            self.imageRequestID = ZLPhotoManager.fetchImage(for: self.model.asset, size: size, completion: { [weak self] (image, isDegraded) in
-                if self?.imageIdentifier == self?.model.ident {
-                    self?.imageView.image = image
+            
+            if self.model.type == .video {
+                self.tagImageView.isHidden = false
+                self.tagImageView.image = getImage("zl_video")
+                self.tagLabel.isHidden = true
+            } else if ZLPhotoConfiguration.default().allowSelectGif, self.model.type == .gif {
+                self.tagImageView.isHidden = true
+                self.tagLabel.isHidden = false
+                self.tagLabel.text = "GIF"
+            } else if ZLPhotoConfiguration.default().allowSelectLivePhoto, self.model.type == .livePhoto {
+                self.tagImageView.isHidden = false
+                self.tagImageView.image = getImage("zl_livePhoto")
+                self.tagLabel.isHidden = true
+            } else {
+                if let _ =  self.model.editImage {
+                    self.tagImageView.isHidden = false
+                    self.tagImageView.image = getImage("zl_editImage_tag")
+                } else {
+                    self.tagImageView.isHidden = true
+                    self.tagLabel.isHidden = true
                 }
-            })
+            }
+            
+            self.imageIdentifier = self.model.ident
+            self.imageView.image = nil
+            
+            if let ei = self.model.editImage {
+                self.imageView.image = ei
+            } else {
+                self.imageRequestID = ZLPhotoManager.fetchImage(for: self.model.asset, size: size, completion: { [weak self] (image, isDegraded) in
+                    if self?.imageIdentifier == self?.model.ident {
+                        self?.imageView.image = image
+                    }
+                })
+            }
         }
     }
     

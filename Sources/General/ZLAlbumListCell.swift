@@ -84,9 +84,13 @@ class ZLAlbumListCell: UITableViewCell {
         self.coverImageView = UIImageView()
         self.coverImageView.contentMode = .scaleAspectFill
         self.coverImageView.clipsToBounds = true
-        if ZLPhotoConfiguration.default().cellCornerRadio > 0 {
-            self.coverImageView.layer.masksToBounds = true
-            self.coverImageView.layer.cornerRadius = ZLPhotoConfiguration.default().cellCornerRadio
+        if #available(iOS 10.0, *) {
+            if ZLPhotoConfiguration.default().cellCornerRadio > 0 {
+                self.coverImageView.layer.masksToBounds = true
+                self.coverImageView.layer.cornerRadius = ZLPhotoConfiguration.default().cellCornerRadio
+            }
+        } else {
+            // Fallback on earlier versions
         }
         self.contentView.addSubview(self.coverImageView)
         

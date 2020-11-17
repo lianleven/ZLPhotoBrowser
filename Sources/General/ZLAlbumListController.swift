@@ -44,7 +44,12 @@ class ZLAlbumListController: UIViewController, UITableViewDataSource, UITableVie
     var shouldReloadAlbumList = true
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ZLPhotoConfiguration.default().statusBarStyle
+        if #available(iOS 10.0, *) {
+            return ZLPhotoConfiguration.default().statusBarStyle
+        } else {
+            // Fallback on earlier versions
+            return .default
+        }
     }
     
     deinit {
@@ -66,14 +71,16 @@ class ZLAlbumListController: UIViewController, UITableViewDataSource, UITableVie
             return
         }
         
-        DispatchQueue.global().async {
-            ZLPhotoManager.getPhotoAlbumList(ascending: ZLPhotoConfiguration.default().sortAscending, allowSelectImage: ZLPhotoConfiguration.default().allowSelectImage, allowSelectVideo: ZLPhotoConfiguration.default().allowSelectVideo) { [weak self] (albumList) in
-                self?.arrDataSource.removeAll()
-                self?.arrDataSource.append(contentsOf: albumList)
-                
-                self?.shouldReloadAlbumList = false
-                DispatchQueue.main.async {
-                    self?.tableView.reloadData()
+        if #available(iOS 10.0, *) {
+            DispatchQueue.global().async {
+                ZLPhotoManager.getPhotoAlbumList(ascending: ZLPhotoConfiguration.default().sortAscending, allowSelectImage: ZLPhotoConfiguration.default().allowSelectImage, allowSelectVideo: ZLPhotoConfiguration.default().allowSelectVideo) { [weak self] (albumList) in
+                    self?.arrDataSource.removeAll()
+                    self?.arrDataSource.append(contentsOf: albumList)
+                    
+                    self?.shouldReloadAlbumList = false
+                    DispatchQueue.main.async {
+                        self?.tableView.reloadData()
+                    }
                 }
             }
         }
@@ -86,18 +93,20 @@ class ZLAlbumListController: UIViewController, UITableViewDataSource, UITableVie
         if #available(iOS 11.0, *) {
             insets = self.view.safeAreaInsets
         }
-        let navH = insets.top + 44
-        self.navView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: navH)
-        self.navBlurView?.frame = self.navView.bounds
-        
-        let albumTitleW = localLanguageTextValue(.photo).boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width
-        self.albumTitleLabel.frame = CGRect(x: (self.view.frame.width-albumTitleW)/2, y: insets.top, width: albumTitleW, height: 44)
-        let cancelBtnW = localLanguageTextValue(.previewCancel).boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width + 40
-        self.cancelBtn.frame = CGRect(x: self.view.frame.width-insets.right-cancelBtnW, y: insets.top, width: cancelBtnW, height: 44)
-        
-        self.tableView.frame = CGRect(x: insets.left, y: 0, width: self.view.frame.width - insets.left - insets.right, height: self.view.frame.height)
-        self.tableView.contentInset = UIEdgeInsets(top: 44, left: 0, bottom: 0, right: 0)
-        self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 44, left: 0, bottom: 0, right: 0)
+        if #available(iOS 10.0, *) {
+            let navH = insets.top + 44
+            self.navView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: navH)
+            self.navBlurView?.frame = self.navView.bounds
+            
+            let albumTitleW = localLanguageTextValue(.photo).boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width
+            self.albumTitleLabel.frame = CGRect(x: (self.view.frame.width-albumTitleW)/2, y: insets.top, width: albumTitleW, height: 44)
+            let cancelBtnW = localLanguageTextValue(.previewCancel).boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width + 40
+            self.cancelBtn.frame = CGRect(x: self.view.frame.width-insets.right-cancelBtnW, y: insets.top, width: cancelBtnW, height: 44)
+            
+            self.tableView.frame = CGRect(x: insets.left, y: 0, width: self.view.frame.width - insets.left - insets.right, height: self.view.frame.height)
+            self.tableView.contentInset = UIEdgeInsets(top: 44, left: 0, bottom: 0, right: 0)
+            self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 44, left: 0, bottom: 0, right: 0)
+        }
     }
     
     func setupUI() {
@@ -123,30 +132,37 @@ class ZLAlbumListController: UIViewController, UITableViewDataSource, UITableVie
         self.navView.backgroundColor = .navBarColor
         self.view.addSubview(self.navView)
         
-        if let effect = ZLPhotoConfiguration.default().navViewBlurEffect {
-            self.navBlurView = UIVisualEffectView(effect: effect)
-            self.navView.addSubview(self.navBlurView!)
+        if #available(iOS 10.0, *) {
+            if let effect = ZLPhotoConfiguration.default().navViewBlurEffect {
+                self.navBlurView = UIVisualEffectView(effect: effect)
+                self.navView.addSubview(self.navBlurView!)
+            }
+            
+            self.albumTitleLabel = UILabel()
+            self.albumTitleLabel.textColor = .navTitleColor
+            self.albumTitleLabel.font = ZLLayout.navTitleFont
+            self.albumTitleLabel.text = localLanguageTextValue(.photo)
+            self.albumTitleLabel.textAlignment = .center
+            self.navView.addSubview(self.albumTitleLabel)
+            
+            self.cancelBtn = UIButton(type: .custom)
+            self.cancelBtn.titleLabel?.font = ZLLayout.navTitleFont
+            self.cancelBtn.setTitle(localLanguageTextValue(.previewCancel), for: .normal)
+            self.cancelBtn.setTitleColor(.navTitleColor, for: .normal)
+            self.cancelBtn.addTarget(self, action: #selector(cancelBtnClick), for: .touchUpInside)
+            self.navView.addSubview(self.cancelBtn)
         }
-        
-        self.albumTitleLabel = UILabel()
-        self.albumTitleLabel.textColor = .navTitleColor
-        self.albumTitleLabel.font = ZLLayout.navTitleFont
-        self.albumTitleLabel.text = localLanguageTextValue(.photo)
-        self.albumTitleLabel.textAlignment = .center
-        self.navView.addSubview(self.albumTitleLabel)
-        
-        self.cancelBtn = UIButton(type: .custom)
-        self.cancelBtn.titleLabel?.font = ZLLayout.navTitleFont
-        self.cancelBtn.setTitle(localLanguageTextValue(.previewCancel), for: .normal)
-        self.cancelBtn.setTitleColor(.navTitleColor, for: .normal)
-        self.cancelBtn.addTarget(self, action: #selector(cancelBtnClick), for: .touchUpInside)
-        self.navView.addSubview(self.cancelBtn)
     }
     
     @objc func cancelBtnClick() {
-        let nav = self.navigationController as? ZLImageNavController
-        nav?.cancelBlock?()
-        nav?.dismiss(animated: true, completion: nil)
+        if #available(iOS 10, *) {
+            let nav = self.navigationController as? ZLImageNavController
+            nav?.cancelBlock?()
+            nav?.dismiss(animated: true, completion: nil)
+        } else {
+            // Fallback on earlier versions
+        }
+        
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

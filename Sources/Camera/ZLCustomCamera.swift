@@ -28,6 +28,7 @@ import UIKit
 import AVFoundation
 import CoreMotion
 
+@available(iOS 10.0, *)
 public class ZLCustomCamera: UIViewController, CAAnimationDelegate {
 
     struct Layout {
@@ -421,8 +422,7 @@ public class ZLCustomCamera: UIViewController, CAAnimationDelegate {
         if ZLPhotoConfiguration.default().allowRecordVideo, let microphone = self.getMicrophone() {
             audioInput = try? AVCaptureDeviceInput(device: microphone)
         }
-        
-        let preset = ZLPhotoConfiguration.default().sessionPreset.avSessionPreset
+        let preset = (ZLCustomCamera.CaptureSessionPreset(rawValue: ZLPhotoConfiguration.default().sessionPreset) ?? .hd1280x720).avSessionPreset
         if self.session.canSetSessionPreset(preset) {
             self.session.sessionPreset = preset
         } else {
@@ -627,7 +627,7 @@ public class ZLCustomCamera: UIViewController, CAAnimationDelegate {
         }
         let setting = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecJPEG])
         if self.videoInput?.device.hasFlash == true {
-            setting.flashMode = ZLPhotoConfiguration.default().cameraFlashMode.avFlashMode
+            setting.flashMode = (ZLCustomCamera.CameraFlashMode(rawValue: ZLPhotoConfiguration.default().cameraFlashMode) ?? .off).avFlashMode
         }
         self.imageOutput.capturePhoto(with: setting, delegate: self)
     }
@@ -833,6 +833,7 @@ public class ZLCustomCamera: UIViewController, CAAnimationDelegate {
 }
 
 
+@available(iOS 10.0, *)
 extension ZLCustomCamera: AVCapturePhotoCaptureDelegate {
     
     public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photoSampleBuffer: CMSampleBuffer?, previewPhoto previewPhotoSampleBuffer: CMSampleBuffer?, resolvedSettings: AVCaptureResolvedPhotoSettings, bracketSettings: AVCaptureBracketedStillImageSettings?, error: Error?) {
@@ -855,6 +856,7 @@ extension ZLCustomCamera: AVCapturePhotoCaptureDelegate {
 }
 
 
+@available(iOS 10.0, *)
 extension ZLCustomCamera: AVCaptureFileOutputRecordingDelegate {
     
     public func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
@@ -928,6 +930,7 @@ extension ZLCustomCamera: AVCaptureFileOutputRecordingDelegate {
 }
 
 
+@available(iOS 10.0, *)
 extension ZLCustomCamera: UIGestureRecognizerDelegate {
     
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -948,6 +951,7 @@ extension ZLCustomCamera: UIGestureRecognizerDelegate {
 }
 
 
+@available(iOS 10.0, *)
 extension ZLCustomCamera {
     
     @objc public enum CaptureSessionPreset: Int {

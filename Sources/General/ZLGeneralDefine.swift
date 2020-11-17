@@ -149,39 +149,43 @@ func showAlertView(_ message: String, _ sender: UIViewController?) {
 }
 
 func canAddModel(_ model: ZLPhotoModel, currentSelectCount: Int, sender: UIViewController?, showAlert: Bool = true) -> Bool {
-    guard (ZLPhotoConfiguration.default().canSelectAsset?(model.asset) ?? true) else {
-        return false
-    }
-    
-    if currentSelectCount >= ZLPhotoConfiguration.default().maxSelectCount {
-        if showAlert {
-            let message = String(format: localLanguageTextValue(.exceededMaxSelectCount), ZLPhotoConfiguration.default().maxSelectCount)
-            showAlertView(message, sender)
-        }
-        return false
-    }
-    if currentSelectCount > 0 {
-        if !ZLPhotoConfiguration.default().allowMixSelect, model.type == .video {
+    if #available(iOS 10.0, *) {
+        guard (ZLPhotoConfiguration.default().canSelectAsset?(model.asset) ?? true) else {
             return false
         }
-    }
-    if model.type == .video {
-        if model.second > ZLPhotoConfiguration.default().maxSelectVideoDuration {
+        
+        if currentSelectCount >= ZLPhotoConfiguration.default().maxSelectCount {
             if showAlert {
-                let message = String(format: localLanguageTextValue(.longerThanMaxVideoDuration), ZLPhotoConfiguration.default().maxSelectVideoDuration)
+                let message = String(format: localLanguageTextValue(.exceededMaxSelectCount), ZLPhotoConfiguration.default().maxSelectCount)
                 showAlertView(message, sender)
             }
             return false
         }
-        if model.second < ZLPhotoConfiguration.default().minSelectVideoDuration {
-            if showAlert {
-                let message = String(format: localLanguageTextValue(.shorterThanMaxVideoDuration), ZLPhotoConfiguration.default().minSelectVideoDuration)
-                showAlertView(message, sender)
+        if currentSelectCount > 0 {
+            if !ZLPhotoConfiguration.default().allowMixSelect, model.type == .video {
+                return false
             }
-            return false
         }
+        if model.type == .video {
+            if model.second > ZLPhotoConfiguration.default().maxSelectVideoDuration {
+                if showAlert {
+                    let message = String(format: localLanguageTextValue(.longerThanMaxVideoDuration), ZLPhotoConfiguration.default().maxSelectVideoDuration)
+                    showAlertView(message, sender)
+                }
+                return false
+            }
+            if model.second < ZLPhotoConfiguration.default().minSelectVideoDuration {
+                if showAlert {
+                    let message = String(format: localLanguageTextValue(.shorterThanMaxVideoDuration), ZLPhotoConfiguration.default().minSelectVideoDuration)
+                    showAlertView(message, sender)
+                }
+                return false
+            }
+        }
+        return true
+    } else {
+        return false
     }
-    return true
 }
 
 func zl_debugPrint(_ message: Any) {

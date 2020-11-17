@@ -29,6 +29,7 @@ import Photos
 
 public typealias Second = Int
 
+
 public class ZLPhotoConfiguration: NSObject {
 
     private static let single = ZLPhotoConfiguration()
@@ -326,13 +327,13 @@ public class ZLPhotoConfiguration: NSObject {
     }
     
     /// Video resolution.
-    @objc public var sessionPreset: ZLCustomCamera.CaptureSessionPreset = .hd1280x720
+    @objc public var sessionPreset: Int = 2
     
     /// Video export format for recording video and editing video.
-    @objc public var videoExportType: ZLCustomCamera.VideoExportType = .mov
+    @objc public var videoExportType: Int = 0
     
     /// Camera flahs mode. Default is off.
-    @objc public var cameraFlashMode: ZLCustomCamera.CameraFlashMode = .off
+    @objc public var cameraFlashMode: Int = 2
     
     /// Hud style. Default is lightBlur.
     @objc public var hudStyle: ZLProgressHUD.HUDStyle = .lightBlur

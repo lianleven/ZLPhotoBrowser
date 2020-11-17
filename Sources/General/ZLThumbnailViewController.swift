@@ -551,33 +551,35 @@ class ZLThumbnailViewController: UIViewController {
     }
     
     func showCamera() {
-        let config = ZLPhotoConfiguration.default()
-        if config.useCustomCamera {
-            let camera = ZLCustomCamera()
-            camera.takeDoneBlock = { [weak self] (image, videoUrl) in
-                self?.save(image: image, videoUrl: videoUrl)
-            }
-            self.showDetailViewController(camera, sender: nil)
-        } else {
-            if UIImagePickerController.isSourceTypeAvailable(.camera) {
-                let picker = UIImagePickerController()
-                picker.delegate = self
-                picker.allowsEditing = false
-                picker.videoQuality = .typeHigh
-                picker.sourceType = .camera
-                picker.cameraFlashMode = config.cameraFlashMode.imagePickerFlashMode
-                var mediaTypes = [String]()
-                if config.allowTakePhoto {
-                    mediaTypes.append("public.image")
+        if #available(iOS 10.0, *) {
+            let config = ZLPhotoConfiguration.default()
+            if config.useCustomCamera {
+                let camera = ZLCustomCamera()
+                camera.takeDoneBlock = { [weak self] (image, videoUrl) in
+                    self?.save(image: image, videoUrl: videoUrl)
                 }
-                if config.allowRecordVideo {
-                    mediaTypes.append("public.movie")
-                }
-                picker.mediaTypes = mediaTypes
-                picker.videoMaximumDuration = TimeInterval(config.maxRecordDuration)
-                self.showDetailViewController(picker, sender: nil)
+                self.showDetailViewController(camera, sender: nil)
             } else {
-                showAlertView(localLanguageTextValue(.cameraUnavailable), self)
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    let picker = UIImagePickerController()
+                    picker.delegate = self
+                    picker.allowsEditing = false
+                    picker.videoQuality = .typeHigh
+                    picker.sourceType = .camera
+                    picker.cameraFlashMode = (ZLCustomCamera.CameraFlashMode(rawValue: config.cameraFlashMode) ?? .off).imagePickerFlashMode
+                    var mediaTypes = [String]()
+                    if config.allowTakePhoto {
+                        mediaTypes.append("public.image")
+                    }
+                    if config.allowRecordVideo {
+                        mediaTypes.append("public.movie")
+                    }
+                    picker.mediaTypes = mediaTypes
+                    picker.videoMaximumDuration = TimeInterval(config.maxRecordDuration)
+                    self.showDetailViewController(picker, sender: nil)
+                } else {
+                    showAlertView(localLanguageTextValue(.cameraUnavailable), self)
+                }
             }
         }
     }

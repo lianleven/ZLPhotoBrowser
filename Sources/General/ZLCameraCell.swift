@@ -35,7 +35,7 @@ class ZLCameraCell: UICollectionViewCell {
     
     var videoInput: AVCaptureDeviceInput?
     
-    var photoOutput: AVCapturePhotoOutput?
+    var photoOutput: AVCaptureOutput?
     
     var previewLayer: AVCaptureVideoPreviewLayer?
     
@@ -63,14 +63,16 @@ class ZLCameraCell: UICollectionViewCell {
     }
     
     func setupUI() {
-        self.layer.masksToBounds = true
-        self.layer.cornerRadius = ZLPhotoConfiguration.default().cellCornerRadio
-        
-        self.imageView = UIImageView(image: getImage("zl_takePhoto"))
-        self.imageView.contentMode = .scaleAspectFit
-        self.imageView.clipsToBounds = true
-        self.contentView.addSubview(self.imageView)
-        self.backgroundColor = .cameraCellBgColor
+        if #available(iOS 10.0, *) {
+            self.layer.masksToBounds = true
+            self.layer.cornerRadius = ZLPhotoConfiguration.default().cellCornerRadio
+            
+            self.imageView = UIImageView(image: getImage("zl_takePhoto"))
+            self.imageView.contentMode = .scaleAspectFit
+            self.imageView.clipsToBounds = true
+            self.contentView.addSubview(self.imageView)
+            self.backgroundColor = .cameraCellBgColor
+        }
     }
     
     func startCapture() {
@@ -115,7 +117,11 @@ class ZLCameraCell: UICollectionViewCell {
             return
         }
         self.videoInput = input
-        self.photoOutput = AVCapturePhotoOutput()
+        if #available(iOS 10.0, *) {
+            self.photoOutput = AVCapturePhotoOutput()
+        } else {
+            // Fallback on earlier versions
+        }
         
         self.session = AVCaptureSession()
         
@@ -136,10 +142,12 @@ class ZLCameraCell: UICollectionViewCell {
     }
     
     func backCamera() -> AVCaptureDevice? {
-        let devices = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices
-        for device in devices {
-            if device.position == .back {
-                return device
+        if #available(iOS 10.0, *) {
+            let devices = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices
+            for device in devices {
+                if device.position == .back {
+                    return device
+                }
             }
         }
         return nil

@@ -42,7 +42,11 @@ class ZLImageNavController: UINavigationController {
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ZLPhotoConfiguration.default().statusBarStyle
+        if #available(iOS 10.0, *) {
+            return ZLPhotoConfiguration.default().statusBarStyle
+        } else {
+            return .default
+        }
     }
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -51,15 +55,17 @@ class ZLImageNavController: UINavigationController {
     
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
-        self.navigationBar.barStyle = .black
-        self.navigationBar.isTranslucent = true
-        self.modalPresentationStyle = .fullScreen
-        self.isNavigationBarHidden = true
-        
-        let colorDeploy = ZLPhotoConfiguration.default().themeColorDeploy
-        self.navigationBar.setBackgroundImage(self.image(color: colorDeploy.navBarColor), for: .default)
-        self.navigationBar.tintColor = colorDeploy.navTitleColor
-        self.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colorDeploy.navTitleColor]
+        if #available(iOS 10.0, *) {
+            self.navigationBar.barStyle = .black
+            self.navigationBar.isTranslucent = true
+            self.modalPresentationStyle = .fullScreen
+            self.isNavigationBarHidden = true
+            
+            let colorDeploy = ZLPhotoConfiguration.default().themeColorDeploy
+            self.navigationBar.setBackgroundImage(self.image(color: colorDeploy.navBarColor), for: .default)
+            self.navigationBar.tintColor = colorDeploy.navTitleColor
+            self.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colorDeploy.navTitleColor]
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
