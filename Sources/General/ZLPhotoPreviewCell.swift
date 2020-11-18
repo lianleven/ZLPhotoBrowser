@@ -340,7 +340,7 @@ class ZLLivePhotoPewviewCell: ZLPreviewBaseCell {
         return self.imageView.image
     }
     
-    var livePhotoView: PHLivePhotoView!
+    var livePhotoView: UIView!
     
     var imageView: UIImageView!
     
@@ -373,12 +373,20 @@ class ZLLivePhotoPewviewCell: ZLPreviewBaseCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        self.livePhotoView.frame = self.bounds
+        if #available(iOS 9.1, *) {
+            (self.livePhotoView as! PHLivePhotoView).frame = self.bounds
+        } else {
+            // Fallback on earlier versions
+        }
         self.resizeImageView(imageView: self.imageView, asset: self.model.asset)
     }
     
     private func setupUI() {
-        self.livePhotoView = PHLivePhotoView()
+        if #available(iOS 9.1, *) {
+            self.livePhotoView  = PHLivePhotoView()
+        } else {
+            // Fallback on earlier versions
+        }
         self.livePhotoView.contentMode = .scaleAspectFit
         self.contentView.addSubview(self.livePhotoView)
         
@@ -388,7 +396,11 @@ class ZLLivePhotoPewviewCell: ZLPreviewBaseCell {
     }
     
     override func previewVCScroll() {
-        self.livePhotoView.stopPlayback()
+        if #available(iOS 9.1, *) {
+            (self.livePhotoView as! PHLivePhotoView).stopPlayback()
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     func loadNormalImage() {
@@ -422,18 +434,26 @@ class ZLLivePhotoPewviewCell: ZLPreviewBaseCell {
         self.onFetchingLivePhoto = true
         self.fetchLivePhotoDone = false
         
-        self.livePhotoRequestID = ZLPhotoManager.fetchLivePhoto(for: self.model.asset, completion: { (livePhoto, info, isDegraded) in
-            if !isDegraded {
-                self.fetchLivePhotoDone = true
-                self.livePhotoView.livePhoto = livePhoto
-                self.startPlayLivePhoto()
-            }
-        })
+        if #available(iOS 9.1, *) {
+            self.livePhotoRequestID = ZLPhotoManager.fetchLivePhoto(for: self.model.asset, completion: { (livePhoto, info, isDegraded) in
+                if !isDegraded {
+                    self.fetchLivePhotoDone = true
+                    (self.livePhotoView as! PHLivePhotoView).livePhoto = livePhoto
+                    self.startPlayLivePhoto()
+                }
+            })
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     func startPlayLivePhoto() {
         self.imageView.isHidden = true
-        self.livePhotoView.startPlayback(with: .full)
+        if #available(iOS 9.1, *) {
+            (self.livePhotoView as! PHLivePhotoView).startPlayback(with: .full)
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     override func animateImageFrame(convertTo view: UIView) -> CGRect {

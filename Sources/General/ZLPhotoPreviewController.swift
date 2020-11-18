@@ -26,6 +26,7 @@
 
 import UIKit
 import Photos
+import PhotosUI
 
 class ZLPhotoPreviewController: UIViewController {
 
@@ -351,7 +352,11 @@ class ZLPhotoPreviewController: UIViewController {
             if cell is ZLVideoPreviewCell {
                 (cell as! ZLVideoPreviewCell).pauseWhileTransition()
             } else if cell is ZLLivePhotoPewviewCell {
-                (cell as! ZLLivePhotoPewviewCell).livePhotoView.stopPlayback()
+                if #available(iOS 9.1, *) {
+                    (((cell as! ZLLivePhotoPewviewCell).livePhotoView) as! PHLivePhotoView).stopPlayback()
+                } else {
+                    // Fallback on earlier versions
+                }
             } else if cell is ZLGifPreviewCell {
                 (cell as! ZLGifPreviewCell).pauseGif()
             }
